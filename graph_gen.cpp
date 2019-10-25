@@ -23,6 +23,8 @@ int main (int argc, char **argv) {
 	}
 
 	int limit = rand() % ((nodes * (nodes-1))/2 - edges.size());
+	if (argc == 3)
+		limit = atoi(argv[2]);
 	for (int i = 0; i < limit; i++) {
 		int j, k;
 		do {
