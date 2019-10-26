@@ -8,22 +8,7 @@
 
 using namespace std;
 
-class Vertex {
-	public:
-		void add(int);
-		bool isNeigh(int);
-		int id;
-		vector<int> neigh {};
-};
-
-map<int, Vertex> Vertices;
-
-void Vertex::add(int v) {
-	if (find(neigh.begin(), neigh.end(), v) == neigh.end()) {
-		neigh.push_back(v);
-		Vertices[v].add(id);
-	}
-}
+uint16_t weight[VERT_NO][VERT_NO];
 
 //TODO: overloaded comparison operator for fitness?
 class Chromosome {
@@ -31,8 +16,6 @@ class Chromosome {
 		Chromosome();
 		Chromosome(map<int,bool>);
 		Chromosome *mutate();
-		bool add(int);
-		void del(int);
 		void print();
 
 		inline bool operator == (const Chromosome &b) const
@@ -48,24 +31,34 @@ class Chromosome {
 			return fitness > b.fitness;
 		}
 
-		map<int,bool> active;
+		//map<int,bool> active;
+		uint32_t permutation[VERT_NO];
 		uint32_t fitness;
 };
 
-Chromosome::Chromosome() {
+/* Chromosome::Chromosome() {
 	fitness = 0;
 	for (std::map<int,Vertex>::iterator i = Vertices.begin(); i != Vertices.end(); i++) {
 		active[i->first] = false;
 	}
 }
+*/
 
-Chromosome::Chromosome(map<int,bool> chrs) {
-	active = chrs;
+Chromosome::Chromosome(uint32_t permut[VERT_NO]) {
+	permutation = permut;
 }
 
 Chromosome *Chromosome::mutate() {
-	Chromosome *temp = new Chromosome(active); temp->fitness = fitness;
+	Chromosome *temp = new Chromosome(permutation); temp->fitness = fitness;
+	int i, j;
+	
+	do {
+		i = rand() % VERT_NO;
+		j = rand() % VERT_NO;
+	} while (i == j);
+	swap(temp->permutation[i], temp->permutation[j]);
 
+	/*
 	for (int j = 0; j < 10; j++) {
 		auto i  = temp->active.begin();
 		std::advance(i, rand() % temp->active.size());
@@ -78,35 +71,24 @@ Chromosome *Chromosome::mutate() {
 			break;
 		}
 	}
+	*/
 
 	return temp;
 }
 
 Chromosome *cross (Chromosome *c1, Chromosome *c2) {
-	Chromosome *temp = new Chromosome();
-	for (map<int,bool>::iterator i = c1->active.begin(), j = c2->active.begin(); i != c1->active.end(); i++, j++) {
-		if (i->second | j->second) {
-			temp->add(i->first);
-		}
-	}
-	return temp;
-}
+	Chromosome *temp = new Chromosome(); temp->fitness = fitness;
+	int p1 = VERT_NO / 3, p2 = p1 * 2;
+	vector<uint32_t> pool(c2->permutation, c2->permutation + VERT_NO);
 
-bool Chromosome::add(int n) {
-	for (unsigned int i = 0; i < Vertices[n].neigh.size(); i++) {
-		int neighbor = Vertices[n].neigh[i];
-		if (active[neighbor]) {
-			return false;
-		}
+	for (int i = p1; i < p2; i++) {
+		temp->permutation[i] = c1->permutation[i];	
+		pool.erase(remove(pool.begin(), pool.end(), c1->permutation[i]), pool.end());
 	}
-	active[n] = true;
-	fitness++;
-	return true;
-}
 
-void Chromosome::del(int n) {
-	active[n] = false;
-	fitness--;
+	for (int i = p2; i != p1; i=(i+1)%VERT_NO) {
+		temp->permutation[i] = pool[0]; pool.erase(0);
+	}
 }
 
 void Chromosome::print() {
@@ -122,7 +104,7 @@ bool sort_by_fitness (Chromosome* x, Chromosome* y) {
 
 void startup() {
 	srand(time(NULL));
-	FILE *infile = fopen("ARXIV_GeneralRelativity_QuantumCosmology_1993-2003.txt", "r");
+	/*FILE *infile = fopen("ARXIV_GeneralRelativity_QuantumCosmology_1993-2003.txt", "r");
 	//check for file errs here
 
 	while (!feof(infile)) {
@@ -131,5 +113,12 @@ void startup() {
 		Vertices[v1].id = v1;
 		Vertices[v1].add(v2);
 	}
-
+	*/
+	for (uint16_t i = 0; i < VERT_NO; i++) {
+		for (uint16_t j = i + 1; j < VERT_NO; j++) {
+			if (i == j)
+				continue;
+			weight[i][j] = weight[j][i] = (uint16_t) rand();
+		}
+	}
 }
