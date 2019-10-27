@@ -4,6 +4,7 @@
 #include <array>
 #include <ctime>
 #include <map>
+#include <numeric>
 #include <vector>
 #include <cinttypes>
 
@@ -72,6 +73,7 @@ Chromosome *cross (Chromosome *c1, Chromosome *c2) {
 		temp->permutation[i] = pool[0]; pool.erase(pool.begin());
 	}
 	temp->evalFitness();
+	return temp;
 }
 
 void Chromosome::evalFitness() {
@@ -114,7 +116,7 @@ void startup() {
 	for (uint16_t i = 0; i < VERT_NO; i++) {
 		for (uint16_t j = i + 1; j < VERT_NO; j++) {
 			if (!feof(infile)) {
-				fscanf(infile, "%" SCNu16, weight[j][i]);
+				fscanf(infile, "%" SCNu16, &(weight[j][i]));
 				weight[i][j] = weight[j][i];
 			}
 			//weight[i][j] = weight[j][i] = (uint16_t) rand();
@@ -122,3 +124,15 @@ void startup() {
 	}
 }
 
+int get_parent(array<Chromosome *, VERT_NO> gen) {
+	uint16_t fitness = -1;
+	int v = 0;
+	for (int i = 0; i < 2; i++) {
+		int temp = rand() % VERT_NO;
+		if (gen[temp]->fitness < fitness) {
+			v = temp;
+			fitness = gen[temp]->fitness;
+		}
+	}
+	return v;
+}
