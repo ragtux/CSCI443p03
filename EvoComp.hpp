@@ -17,6 +17,7 @@ class Chromosome {
 		Chromosome(map<int,bool>);
 		Chromosome *mutate();
 		void print();
+		void evalFitness();
 
 		inline bool operator == (const Chromosome &b) const
 		{
@@ -31,18 +32,12 @@ class Chromosome {
 			return fitness > b.fitness;
 		}
 
-		//map<int,bool> active;
 		uint32_t permutation[VERT_NO];
 		uint32_t fitness;
 };
 
-/* Chromosome::Chromosome() {
-	fitness = 0;
-	for (std::map<int,Vertex>::iterator i = Vertices.begin(); i != Vertices.end(); i++) {
-		active[i->first] = false;
-	}
+Chromosome::Chromosome() {
 }
-*/
 
 Chromosome::Chromosome(uint32_t permut[VERT_NO]) {
 	permutation = permut;
@@ -57,21 +52,7 @@ Chromosome *Chromosome::mutate() {
 		j = rand() % VERT_NO;
 	} while (i == j);
 	swap(temp->permutation[i], temp->permutation[j]);
-
-	/*
-	for (int j = 0; j < 10; j++) {
-		auto i  = temp->active.begin();
-		std::advance(i, rand() % temp->active.size());
-		float r = ((float) rand())/((float) RAND_MAX);
-		if (i->second && r < 0.1) {
-			temp->del(i->first);
-			break;
-		} else if (!(i->second) && r >= 0.1) {
-			temp->add(i->first);
-			break;
-		}
-	}
-	*/
+	temp->evalFitness();
 
 	return temp;
 }
@@ -91,6 +72,13 @@ Chromosome *cross (Chromosome *c1, Chromosome *c2) {
 	}
 }
 
+void Chromosome::evalFitness() {
+	int degree = 0;
+	for (uint16_t i = 0; i < VERT_NO - 1; i++) {
+		//fitness += weight[permutation[i]][permutation[i+1]];
+	}
+}
+
 void Chromosome::print() {
 	for (map<int,bool>::iterator i = active.begin(); i != active.end(); i++) {
 		cout << "{" << i->first << "," << i->second << "} ";
@@ -104,21 +92,18 @@ bool sort_by_fitness (Chromosome* x, Chromosome* y) {
 
 void startup() {
 	srand(time(NULL));
-	/*FILE *infile = fopen("ARXIV_GeneralRelativity_QuantumCosmology_1993-2003.txt", "r");
+
+	FILE *infile = fopen("testfile", "r");
 	//check for file errs here
 
-	while (!feof(infile)) {
-		int v1, v2;
-		fscanf(infile, "%d %d", &v1, &v2);
-		Vertices[v1].id = v1;
-		Vertices[v1].add(v2);
-	}
-	*/
 	for (uint16_t i = 0; i < VERT_NO; i++) {
 		for (uint16_t j = i + 1; j < VERT_NO; j++) {
-			if (i == j)
-				continue;
-			weight[i][j] = weight[j][i] = (uint16_t) rand();
+			if (!feof(infile)) {
+				fscanf(infile, "%"SCNu16, weight[j][i]);
+				weight[i][j] = weight[j][i];
+			}
+			//weight[i][j] = weight[j][i] = (uint16_t) rand();
 		}
 	}
 }
+
