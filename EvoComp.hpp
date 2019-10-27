@@ -5,6 +5,7 @@
 #include <ctime>
 #include <map>
 #include <vector>
+#include <cinttypes>
 
 using namespace std;
 
@@ -14,7 +15,7 @@ uint16_t weight[VERT_NO][VERT_NO];
 class Chromosome {
 	public:
 		Chromosome();
-		Chromosome(map<int,bool>);
+		Chromosome(array<uint32_t, VERT_NO>);
 		Chromosome *mutate();
 		void print();
 		void evalFitness();
@@ -32,14 +33,14 @@ class Chromosome {
 			return fitness > b.fitness;
 		}
 
-		uint32_t permutation[VERT_NO];
+		array<uint32_t, VERT_NO> permutation;
 		uint32_t fitness;
 };
 
 Chromosome::Chromosome() {
 }
 
-Chromosome::Chromosome(uint32_t permut[VERT_NO]) {
+Chromosome::Chromosome(array<uint32_t, VERT_NO> permut) {
 	permutation = permut;
 }
 
@@ -58,9 +59,9 @@ Chromosome *Chromosome::mutate() {
 }
 
 Chromosome *cross (Chromosome *c1, Chromosome *c2) {
-	Chromosome *temp = new Chromosome(); temp->fitness = fitness;
+	Chromosome *temp = new Chromosome();
 	int p1 = VERT_NO / 3, p2 = p1 * 2;
-	vector<uint32_t> pool(c2->permutation, c2->permutation + VERT_NO);
+	vector<uint32_t> pool(c2->permutation.begin(), c2->permutation.end());
 
 	for (int i = p1; i < p2; i++) {
 		temp->permutation[i] = c1->permutation[i];	
@@ -68,20 +69,34 @@ Chromosome *cross (Chromosome *c1, Chromosome *c2) {
 	}
 
 	for (int i = p2; i != p1; i=(i+1)%VERT_NO) {
-		temp->permutation[i] = pool[0]; pool.erase(0);
+		temp->permutation[i] = pool[0]; pool.erase(pool.begin());
 	}
+	temp->evalFitness();
 }
 
 void Chromosome::evalFitness() {
 	int degree = 0;
+	uint16_t edge_num[VERT_NO] = {0};
+	vector<uint16_t> pool;
 	for (uint16_t i = 0; i < VERT_NO - 1; i++) {
-		//fitness += weight[permutation[i]][permutation[i+1]];
+		edge_num[i]++;
+		uint16_t min_weight = weight[permutation[i]][permutation[i+1]];
+		for (uint16_t j = 0; j < i; j++) {
+			//TODO: need to also check that adding edge doesn't violate degree constraint
+			if (weight[permutation[j]][permutation[i+1]] < min_weight) {
+				min_weight = weight[permutation[j]][permutation[i+1]];
+			}
+		}
+		fitness += min_weight;
+		//hide edges that would violate degree constraint
+		//make vector/map of verts with only one edge, and make sure nothing is added to those verts when the degree limit is reached
+		//choose lightest that connects vert i+1 to the current tree without pushing degree past limit
 	}
 }
 
 void Chromosome::print() {
-	for (map<int,bool>::iterator i = active.begin(); i != active.end(); i++) {
-		cout << "{" << i->first << "," << i->second << "} ";
+	for (int i = 0; i < VERT_NO; i++) {
+		cout << permutation[i] << "-";
 	}
 	cout << endl;
 }
@@ -99,7 +114,7 @@ void startup() {
 	for (uint16_t i = 0; i < VERT_NO; i++) {
 		for (uint16_t j = i + 1; j < VERT_NO; j++) {
 			if (!feof(infile)) {
-				fscanf(infile, "%"SCNu16, weight[j][i]);
+				fscanf(infile, "%" SCNu16, weight[j][i]);
 				weight[i][j] = weight[j][i];
 			}
 			//weight[i][j] = weight[j][i] = (uint16_t) rand();
