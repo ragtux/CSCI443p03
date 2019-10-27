@@ -1,11 +1,17 @@
-//File: genetic.cpp
+//File: evolutionary.cpp
 #include "EvoComp.hpp"
 
-int main() {
+int main(int argc, char **argv) {
 	startup();
 
 	//Gen size is maximum 1/5 the number of vertices in graph or 32 chromosomes, whichever is smaller. Always more than one.
 	const int gen_size = VERT_NO;
+	if (argc != 2) {
+		printf("Need to specific degree constraint");
+		exit(1);
+	} else {
+		sscanf(argv[1], "%d", &degree); 
+	}
 
 	array<Chromosome *, gen_size> old_gen;
 	array<Chromosome *, (const int) (gen_size*0.9)> new_gen;
@@ -13,8 +19,8 @@ int main() {
 	//seed prototype/old generation with chromosomes
 	for (int i = 0; i < gen_size; i++) {
 		old_gen[i] = new Chromosome();
-		iota(old_gen[i]->permutation.begin(), old_gen[i]->permutation.end(), 1);
-		random_shuffle(begin(old_gen), end(old_gen));
+		iota(old_gen[i]->permutation.begin(), old_gen[i]->permutation.end(), 0);
+		random_shuffle(old_gen[i]->permutation.begin(), old_gen[i]->permutation.end());
 		old_gen[i]->evalFitness();
 	}
 
@@ -32,21 +38,12 @@ int main() {
 			}
 		}
 
-		//replace a maximum of 1/5 of old_gen with better fit from new_gen
-		/*
-		for (int i = 0, j = gen_size-1; i <= gen_size/5; i++, j--) {
-			if (*(new_gen[j]) > *(old_gen[i])) {
-				delete old_gen[i];
-				old_gen[i] = new_gen[j];
-				new_gen[j] = NULL;
-			}
+		//replace 90 percent of old_gen with new_gen
+		for (int i = 0; i < gen_size * 0.9; i++) {
+			delete old_gen[i];
+			old_gen[i] = new_gen[i];
+			new_gen[i] = NULL;
 		}
-
-		for (int i = 0; i < gen_size; i++) {
-			if (new_gen[i])
-				delete new_gen[i];
-		}
-		*/
 
 		sort(begin(old_gen), end(old_gen), sort_by_fitness); 
 

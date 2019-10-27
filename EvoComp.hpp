@@ -11,6 +11,7 @@
 using namespace std;
 
 uint16_t weight[VERT_NO][VERT_NO];
+int degree;
 
 //TODO: overloaded comparison operator for fitness?
 class Chromosome {
@@ -77,23 +78,27 @@ Chromosome *cross (Chromosome *c1, Chromosome *c2) {
 }
 
 void Chromosome::evalFitness() {
-	int degree = 0;
+	fitness = 0;
+	int degr = 0;
 	uint16_t edge_num[VERT_NO] = {0};
-	vector<uint16_t> pool;
-	for (uint16_t i = 0; i < VERT_NO - 1; i++) {
+	for (uint16_t i = 1; i < VERT_NO; i++) {
 		edge_num[i]++;
-		uint16_t min_weight = weight[permutation[i]][permutation[i+1]];
+		uint16_t min_weight = UINT16_MAX;
+		uint16_t source = 0;
 		for (uint16_t j = 0; j < i; j++) {
-			//TODO: need to also check that adding edge doesn't violate degree constraint
-			if (weight[permutation[j]][permutation[i+1]] < min_weight) {
-				min_weight = weight[permutation[j]][permutation[i+1]];
+			if (weight[permutation[j]][permutation[i]] < min_weight && //check that weight of suggested edge is smallest legal weight so far
+					(degr < degree || edge_num[j] > 1)) { //then check that adding edge doesn't violate degree constraint
+				min_weight = weight[permutation[j]][permutation[i]];
+				source = j;
 			}
 		}
+		edge_num[source]++;
 		fitness += min_weight;
-		//hide edges that would violate degree constraint
-		//make vector/map of verts with only one edge, and make sure nothing is added to those verts when the degree limit is reached
-		//choose lightest that connects vert i+1 to the current tree without pushing degree past limit
+		if (edge_num[source] == 1)
+			degr++;
 	}
+	if (fitness == 0)
+		cout << "You messed up. Fitness is 0" << endl;
 }
 
 void Chromosome::print() {
@@ -104,7 +109,7 @@ void Chromosome::print() {
 }
 
 bool sort_by_fitness (Chromosome* x, Chromosome* y) {
-	return (x->fitness < y->fitness);
+	return (x->fitness > y->fitness);
 }
 
 void startup() {
