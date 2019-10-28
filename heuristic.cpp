@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 { 
 	srand(time(NULL));
 	startup();
-	//sscanf(argv[1], "%d", degree);
+	sscanf(argv[1], "%d", &degree);
 
 	primMST(); 
 
