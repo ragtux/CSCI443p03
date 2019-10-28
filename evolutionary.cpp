@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 	do {
 		for (int i = 0; i < gen_size * 0.9; i++) {
 			int p1 = get_parent(old_gen);
-			if (((float) rand()) / RAND_MAX < 0.3) {
+			if (((float) rand()) / RAND_MAX < 0.2) {
 				//select one chrs and mutate;
 				new_gen[i] = old_gen[p1]->mutate();
 			} else {

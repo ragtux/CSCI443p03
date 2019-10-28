@@ -92,10 +92,10 @@ void Chromosome::evalFitness() {
 				source = j;
 			}
 		}
-		edge_num[source]++;
 		fitness += min_weight;
 		if (edge_num[source] == 1)
 			degr++;
+		edge_num[source]++;
 	}
 	if (fitness == 0)
 		cout << "You messed up. Fitness is 0" << endl;
